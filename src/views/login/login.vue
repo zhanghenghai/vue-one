@@ -20,7 +20,7 @@
 
 <script>
 import http from "@/utils/request"
-
+import Qs from "qs";
 export default {
   data() {
     return {
@@ -37,14 +37,15 @@ export default {
       http({
         method: 'post',
         url: '/login',
-        data: this.user,
+        data: Qs.stringify(this.user),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }).then(res => {
+        console.log("响应的返回值是="+res.data)
         if (res.data === 'success') {
           let data = res.data
-          console.log(data)
+          console.log("data的值="+data)
           //获取并存储服务器返回的AuthorizationToken信息
           var authorization=res.headers['token'];
           console.log(authorization)

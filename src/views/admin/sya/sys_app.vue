@@ -5,59 +5,54 @@
   <el-table
       :data="tableData"
       stripe
-      style="width: 100%;line-height: 0;">
+      style="width: 100%;line-height: 0;"
+      :header-cell-style="{textAlign: 'center'}"
+      :cell-style="{ textAlign: 'center' }">
     <el-table-column
         type="selection"
         width="55">
     </el-table-column>
     <el-table-column
+        prop="appName"
         label="应用名称"
         width="180">
-      <template #default="scope">
-        <i class="el-icon-time"></i>
-        <span style="margin-left: 10px">{{ scope.row.date }}</span>
-      </template>
     </el-table-column>
     <el-table-column
-        align="left"
-        label="应用介绍"
-        width="230">
-      <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="top">
-          <template #default>
-            <p>姓名: {{ scope.row.name }}</p>
-            <p>住址: {{ scope.row.address }}</p>
-          </template>
-          <template #reference>
-            <div class="name-wrapper">
-              <el-tag size="medium">{{ scope.row.name }}</el-tag>
-            </div>
-          </template>
-        </el-popover>
-      </template>
-    </el-table-column>
-    <el-table-column
-        label="应用地址"
+        prop="appImage"
+        label="应用图片"
         width="180">
     </el-table-column>
     <el-table-column
-        label="应用评分"
-        width="130">
+        prop="appDownload"
+        label="应用地址"
+        width="200">
+    </el-table-column>
+    <el-table-column label="应用评分" width="190">
+      <template #default="scope">
+        <el-rate
+            v-model="scope.row.appScore"
+            disabled
+            show-score
+            text-color="#ff9900"
+            score-template="{value}">
+        </el-rate>
+      </template>
     </el-table-column>
     <el-table-column
+        prop="appTime"
         label="创建时间"
         width="180">
     </el-table-column>
-    <el-table-column label="操作" align="center-">
+    <el-table-column label="操作" align="center">
       <template #default="scope">
         <el-button
             size="mini"
-            @clizck="handleEdit(scope.$index, scope.row)">编辑
+            @click="handleEdit(scope.$index, scope.row.id)">编辑
         </el-button>
         <el-button
             size="mini"
             type="danger"
-            @click="handleDelete(scope.$index, scope.row)">删除
+            @click="handleDelete(scope.$index, scope.row.id)">删除
         </el-button>
       </template>
     </el-table-column>
@@ -68,46 +63,86 @@
 
 <script>
 import AddOrUpdate from "@/views/admin/sya/sys_app_dialog";
-
+import http from "@/utils/request"
+import { ElMessage } from 'element-plus'
 export default {
+  inject:['reload'],
   components: {AddOrUpdate},
   data() {
     return {
       dialogFormVisible: false,
       tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
+        appName: '',
+        appImage: '',
+        appContent: '',
+        appDownload:'',
+        appScore:'',
+        appTime:''
       }]
     }
   },
+  // 页面加载完自动执行
+  mounted: function () {
+    this.$nextTick( () => {
+      // 请求数据
+      http({
+        url: '/sysapp/list',
+        method: 'get',
+      }).then( res=> {
+        this.tableData=res.data.data.records
+      })
+    })
+  },
+  // 数据更新
+  updated() {
+    console.log("更新")
+    this.$nextTick( () => {
+      console.log("更新")
+      // 请求数据
+      // http({
+      //   url: '/sysapp/list',
+      //   method: 'get',
+      // }).then( res=> {
+      //   this.tableData=res.data.data.records
+      // })
+    })
+  },
+  /*方法区*/
   methods: {
-    /*新增*/
+    //新增
     add() {
       this.dialogFormVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init()
       })
     },
-    handleEdit(index, row) {
-      console.log(index, row);
+    // 更新
+    handleEdit(index, id) {
+      this.dialogFormVisible = true
+      this.$nextTick(() => {
+        this.$refs.addOrUpdate.init(id)
+      })
     },
-    handleDelete(index, row) {
-      console.log(index, row);
+    // 删除
+    handleDelete(index, id) {
+      console.log(index,id)
+      this.$nextTick(()=>{
+        http({
+          url:'/sysapp/delete/'+id,
+          method:'delete',
+        }).then( res =>{
+          if (res.data.code === 200){
+            this.reload()
+            ElMessage.success({
+              message:'已删除',
+              type:'success'
+            })
+          }
+        })
+      })
     }
-  }
+  },
+
 }
 </script>
 
